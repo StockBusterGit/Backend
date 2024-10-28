@@ -1,10 +1,10 @@
-FROM node:22 AS current-alpine3.20
+FROM node:20.18-alpine3.20 AS build
 
 WORKDIR /app
 
 COPY package*.json /app
 
-RUN npm install --silent
+RUN npm ci --silent
 
 COPY . ./
 
