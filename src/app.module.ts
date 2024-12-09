@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
+import { RolesModule } from './roles/roles.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -15,10 +15,13 @@ dotenv.config();
       username: process.env.MYSQL_USERNAME,
       password: process.env.MYSQL_PASSWORD,
       database: process.env.MYSQL_DATABASE,
-      synchronize: true, // for development purposes only, in production it should be set to false
+      synchronize: true, // Attention : à désactiver en production
+      autoLoadEntities: true, // Charge automatiquement les entités
     }),
+    UsersModule,
+    RolesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
