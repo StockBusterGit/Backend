@@ -10,12 +10,20 @@ export class RolesService implements OnApplicationBootstrap {
     private readonly roleRepository: Repository<Role>,
   ) {}
 
-  // Hook qui s'exécute au démarrage de l'application
+  /**
+   * Lifecycle hook that is called when the application has fully started.
+   * It seeds the database with default roles if they do not already exist.
+   */
   async onApplicationBootstrap() {
     await this.seedRoles();
   }
 
-  // Ajouter les rôles admin et user s'ils n'existent pas
+  /**
+   * Seeds the database with default roles if they do not already exist.
+   *
+   * The roles that are seeded are 'admin' and 'user'. If a role with the same
+   * name already exists, it is skipped.
+   */
   private async seedRoles() {
     const defaultRoles = ['admin', 'user'];
 
