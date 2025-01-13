@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 
-@Entity()
+@Entity('app_users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -12,6 +12,12 @@ export class User {
   @Column()
   password: string;
 
-  @ManyToOne(() => Role, (role) => role.users)
+  @Column({ unique: true })
+  email: string;
+
+  @ManyToOne(() => Role, (role) => role.users, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  }) // Cascade pour suppression
   role: Role;
 }
