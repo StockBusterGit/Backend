@@ -1,18 +1,55 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
-import { Role } from './entities/role.entity';
 
-@Controller('roles') // Route de base pour `/roles`
+@Controller('roles')
+@ApiTags('Roles')
 export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(private readonly rolesService: RolesService) { }
 
-  @Get() // Endpoint pour GET `/roles`
+  @Get()
+  @ApiOperation({ summary: 'Get all roles' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of all roles',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', example: 1 },
+          name: { type: 'string', example: 'admin' },
+        },
+      },
+    },
+  })
   findAll() {
     return this.rolesService.findAll();
   }
 
-  @Post() // Endpoint pour POST `/roles`
-  create(@Body() roleData: Partial<Role>) {
-    return this.rolesService.create(roleData);
+  @Post()
+  @ApiOperation({ summary: 'Create a new role' })
+  @ApiBody({
+    description: 'Data for the new role',
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'admin' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'The role has been successfully created.',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'number', example: 1 },
+        name: { type: 'string', example: 'admin' },
+      },
+    },
+  })
+  create(@Body() body: { name: string }) {
+    return this.rolesService.create(body);
   }
 }
