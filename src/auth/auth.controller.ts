@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
-@ApiTags('Auth') // Groupe pour Swagger
+@ApiTags('Auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

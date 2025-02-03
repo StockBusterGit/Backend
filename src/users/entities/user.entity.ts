@@ -18,6 +18,6 @@ export class User {
   @ManyToOne(() => Role, (role) => role.users, {
     nullable: false,
     onDelete: 'CASCADE',
-  }) // Cascade pour suppression
+  })
   role: Role;
 }

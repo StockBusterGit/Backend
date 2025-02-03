@@ -23,6 +23,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    // Retirer le mot de passe du résultat retourné
     const { password: _, ...result } = user;
     return result;
   }

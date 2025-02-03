@@ -1,15 +1,22 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBody,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
-@ApiTags('Users') // Ajout du tag Swagger "Users"
+@ApiTags('Users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all users' }) // Description de la route
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({
     status: 200,
     description: 'List of all users',

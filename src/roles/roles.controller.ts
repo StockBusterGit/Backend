@@ -3,9 +3,9 @@ import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
 
 @Controller('roles')
-@ApiTags('Roles') // Ajout du tag Swagger "Roles"
+@ApiTags('Roles')
 export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(private readonly rolesService: RolesService) { }
 
   @Get()
   @ApiOperation({ summary: 'Get all roles' })

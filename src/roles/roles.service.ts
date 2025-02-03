@@ -8,7 +8,7 @@ export class RolesService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
-  ) {}
+  ) { }
 
   /**
    * Lifecycle hook that is called when the application has fully started.

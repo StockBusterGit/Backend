@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
-import { AuthModule } from './auth/auth.module'; // Import du module d'authentification
+import { AuthModule } from './auth/auth.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -31,4 +31,4 @@ dotenv.config();
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule { }

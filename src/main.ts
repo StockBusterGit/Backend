@@ -5,20 +5,24 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configuration Swagger
+  // Configuration de Swagger
   const config = new DocumentBuilder()
     .setTitle('StockBuster API')
     .setDescription('API documentation for StockBuster project')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, config);
 
-  // URL Swagger accessible via `/api`
+  const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // Redirection automatique de `/` vers `/api`
-  app.use('/', (req, res) => {
-    res.redirect('/api');
+  // Ne rediriger que la racine
+  app.use('/', (req, res, next) => {
+    if (req.path === '/') {
+      res.redirect('/api');
+    } else {
+      next();
+    }
   });
 
   await app.listen(3000);
