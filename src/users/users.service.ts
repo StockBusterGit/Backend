@@ -14,9 +14,22 @@ export class UsersService {
     private readonly roleRepository: Repository<Role>,
   ) {}
 
+  /**
+   * Retrieves all users with their associated roles.
+   *
+   * @returns {Promise<User[]>} - A promise that resolves to an array of all users, including their roles.
+   */
+
   async findAll(): Promise<User[]> {
     return this.userRepository.find({ relations: ['role'] });
   }
+
+  /**
+   * Finds a user by their email address.
+   *
+   * @param {string} email - The email address to search for.
+   * @returns {Promise<User | undefined>} - A promise that resolves to the user with the specified email, or undefined if no matching user is found.
+   */
 
   async findByEmail(email: string): Promise<User | undefined> {
     return this.userRepository.findOne({
@@ -25,10 +38,17 @@ export class UsersService {
     });
   }
 
+  /**
+   * Creates a new user with the given data.
+   *
+   * @param {CreateUserDto} createUserDto - Data Transfer Object containing the user's details including username, password, email, and roleId.
+   * @returns {Promise<User>} - A promise that resolves to the created User entity.
+   * @throws {NotFoundException} - If the specified roleId does not correspond to an existing role.
+   */
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { roleId, ...userData } = createUserDto;
 
-    // Vérifier si le rôle existe
     const roleEntity = await this.roleRepository.findOne({
       where: { id: roleId },
     });
@@ -36,7 +56,6 @@ export class UsersService {
       throw new NotFoundException(`Role with ID ${roleId} not found`);
     }
 
-    // Créer et sauvegarder l'utilisateur
     const user = this.userRepository.create({
       ...userData,
       role: roleEntity,

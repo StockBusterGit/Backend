@@ -11,7 +11,7 @@ dotenv.config();
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // Rend ConfigModule accessible partout
+      isGlobal: true,
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',

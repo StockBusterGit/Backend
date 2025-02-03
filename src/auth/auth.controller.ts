@@ -8,7 +8,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @HttpCode(200) // Explicitement indiquer un code 200 pour les réussites
+  @HttpCode(200)
   @ApiOperation({ summary: 'Login a user and return a JWT token' })
   @ApiBody({
     description: 'User login credentials',
@@ -31,6 +31,11 @@ export class AuthController {
     },
   })
   @ApiResponse({ status: 401, description: 'Invalid email or password' })
+  /**
+   * Login a user and return a JWT token
+   * @param body User login credentials
+   * @returns A JWT token representing the user's access token
+   */
   async login(@Body() body: { email: string; password: string }) {
     const user = await this.authService.validateUser(body.email, body.password);
     return this.authService.login(user);
