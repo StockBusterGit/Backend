@@ -6,6 +6,7 @@ import { RolesModule } from './roles/roles.module';
 import { AuthModule } from './auth/auth.module';
 import * as dotenv from 'dotenv';
 import { HealthController } from './health.controller';
+import { ProductsModule } from './products/products.module';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ dotenv.config();
     UsersModule,
     RolesModule,
     AuthModule,
+    ProductsModule,
   ],
   controllers: [HealthController],
   providers: [],
