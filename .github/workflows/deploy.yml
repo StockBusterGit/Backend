@@ -31,3 +31,8 @@ jobs:
         run: |
           docker push ${{ secrets.DOCKER_USERNAME }}/stock-buster-back:${{ env.VERSION }}
           docker push ${{ secrets.DOCKER_USERNAME }}/stock-buster-back:latest
+
+      - name: 🔄 Déclencher le redeploiement sur Coolify
+        run: |
+          curl -X POST "https://coolify.timothee-picard.dev/api/v1/deploy?uuid=r8gwsg4scogc84sw4cwsoccc&force=false" \
+          -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
