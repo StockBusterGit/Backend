@@ -24,8 +24,8 @@ jobs:
 
       - name: 🔨 Build de l’image Docker avec tags versionnés
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/stock-buster-back:${{ env.VERSION }} .
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/stock-buster-back:latest .
+          docker build -f production.Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/stock-buster-back:${{ env.VERSION }} .
+          docker build -f production.Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/stock-buster-back:latest .
 
       - name: 📤 Push des images Docker
         run: |
