@@ -1,69 +1,45 @@
-import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
-  IsOptional,
   IsNumber,
-  IsDecimal,
+  IsOptional,
+  IsArray,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProductDto {
-  @ApiProperty({ example: '#3011', description: 'Reference of the product' })
-  @IsString()
-  @IsNotEmpty()
-  reference: string;
-
-  @ApiProperty({
-    example: 'Bidon 5L',
-    description: 'Label / name of the product',
-  })
+  @ApiProperty({ example: 'Produit X' })
   @IsString()
   @IsNotEmpty()
   label: string;
 
-  @ApiProperty({
-    example: 'Ceci est un produit très pratique ...',
-    description: 'Description of the product',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @ApiProperty({ example: 120, description: 'Current stock' })
+  @ApiProperty({ example: 100 })
   @IsNumber()
-  @IsOptional()
-  stock?: number;
+  quantity: number;
 
-  @ApiProperty({ example: 20, description: 'Minimum stock' })
+  @ApiProperty({ example: 50 })
   @IsNumber()
-  @IsOptional()
-  stockMin?: number;
+  stock: number;
 
-  @ApiProperty({ example: 9.04, description: 'Unit price' })
-  @IsDecimal()
-  @IsOptional()
-  unitPrice?: number;
+  @ApiProperty({ example: 20 })
+  @IsNumber()
+  stock_min: number;
 
-  @ApiProperty({
-    example: 'Disponible',
-    description: 'Status (e.g. Disponible, En commande, Hors stock, ...)',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  status?: string;
+  @ApiProperty({ example: 99.99 })
+  @IsNumber()
+  price_unit: number;
 
-  @ApiProperty({
-    example: 'Bidon en Litres',
-    description: 'Format of the product (unit, container, etc.)',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  format?: string;
-
-  @ApiProperty({ example: 1, description: 'ID of the company' })
-  @IsNotEmpty()
+  @ApiProperty({ example: 1, description: 'ID de la compagnie' })
+  @IsNumber()
   companyId: number;
+
+  @ApiProperty({ example: 1, description: 'ID du statut' })
+  @IsOptional()
+  @IsNumber()
+  statusId?: number;
+
+  @ApiProperty({ example: [1, 2], description: 'Liste des ID des tags' })
+  @IsOptional()
+  @IsArray()
+  tags?: number[];
 }
