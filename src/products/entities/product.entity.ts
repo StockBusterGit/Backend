@@ -1,65 +1,41 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
-import { Company } from 'src/companies/entities/company.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+} from 'typeorm';
+import { Company } from '../../companies/entities/company.entity';
+import { Status } from '../../status/entities/status.entity';
+import { Tag } from '../../tags/entities/tag.entity';
 
-@Entity('app_products')
+@Entity('products')
 export class Product {
   @PrimaryGeneratedColumn()
-  @ApiProperty({ example: 1, description: 'Unique ID of the product' })
   id: number;
 
   @Column()
-  @ApiProperty({ example: '#3011', description: 'Reference of the product' })
-  reference: string;
-
-  @Column()
-  @ApiProperty({
-    example: 'Gros bidon de 5L',
-    description: 'Label / name of the product',
-  })
   label: string;
 
-  @Column({ nullable: true })
-  @ApiProperty({
-    example: 'Produit idéal pour ...',
-    description: 'Short description',
-  })
-  description?: string;
+  @Column()
+  quantity: number;
 
-  @Column({ default: 0 })
-  @ApiProperty({ example: 120, description: 'Current stock' })
+  @Column()
   stock: number;
 
-  @Column({ default: 0 })
-  @ApiProperty({ example: 20, description: 'Minimum stock / threshold' })
-  stockMin: number;
+  @Column('float')
+  price_unit: number;
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0 })
-  @ApiProperty({ example: 9.04, description: 'Unit price' })
-  unitPrice: number;
+  @Column()
+  stock_min: number;
 
-  @Column({ default: 'Disponible' })
-  @ApiProperty({
-    example: 'En commande',
-    description: 'Status (e.g. Disponible, En commande, Hors stock, ...)',
-  })
-  status: string;
+  @ManyToOne(() => Status, (status) => status.products)
+  status: Status;
 
-  @Column({ nullable: true })
-  @ApiProperty({
-    example: 'Bidon en Litres',
-    description: 'Format of the product',
-  })
-  format?: string;
-
-  // Relation ManyToOne -> Company
-  @ManyToOne(() => Company, (company) => company.products, {
-    onDelete: 'CASCADE',
-    nullable: false,
-  })
-  @ApiProperty({
-    description: 'The company this product belongs to',
-    type: () => Company,
-  })
+  @ManyToOne(() => Company, (company) => company.products)
   company: Company;
+
+  // Relation ManyToMany inverse
+  @ManyToMany(() => Tag, (tag) => tag.products)
+  tags: Tag[];
 }
