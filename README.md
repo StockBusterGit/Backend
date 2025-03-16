@@ -1,99 +1,137 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# StockBuster - Gestion des stocks pour les entreprises
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+StockBuster est une application web conçue pour aider les entreprises à gérer leur inventaire de manière efficace. Elle permet aux utilisateurs de suivre les niveaux de stock, les produits, les employés et diverses configurations de l'entreprise via une interface intuitive et puissante.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Architecture du projet
 
-## Description
+StockBuster est construit avec **Next.js** pour le frontend et utilise **NestJS** pour gérer le backend et l'API. L'application est conçue pour être modulaire et scalable, garantissant une gestion efficace des différentes entités de l'entreprise.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Structure du projet
 
-## Project setup
+Le projet est organisé en plusieurs répertoires principaux :
 
-```bash
-$ npm install
+```plaintext
+📦 stockbuster
+├── 📂 src
+│   ├── 📄 main.ts                # Point d'entrée principal de l'application
+│   ├── 📄 app.module.ts          # Module racine de l'application
+│   ├── 📄 app.controller.ts      # Contrôleur principal
+│   ├── 📄 app.service.ts         # Service principal
+│   ├── 📄 health.controller.ts   # Contrôleur pour vérifier l'état de santé de l'API
+│   │
+│   ├── 📂 auth                    # Gestion de l'authentification
+│   │   ├── 📄 auth.module.ts      # Module d'authentification
+│   │   ├── 📄 auth.controller.ts  # Contrôleur d'authentification
+│   │   ├── 📄 auth.service.ts     # Service d'authentification
+│   │   ├── 📄 jwt.strategy.ts     # Stratégie JWT
+│   │   └── 📄 jwt-auth.guard.ts   # Garde d'authentification JWT
+│   │
+│   ├── 📂 users                  # Gestion des utilisateurs
+│   │   ├── 📂 dto                 # Objets de transfert de données
+│   │   │   └── 📄 create-user.dto.ts  # DTO pour la création d'un utilisateur
+│   │   ├── 📂 entities            # Définition des entités
+│   │   │   └── 📄 users.entity.ts # Entité utilisateur
+│   │   ├── 📄 users.module.ts      # Module utilisateur
+│   │   ├── 📄 users.controller.ts  # Contrôleur des utilisateurs
+│   │   └── 📄 users.service.ts     # Service des utilisateurs
+│   │
+│   ├── 📂 roles                  # Gestion des rôles utilisateurs
+│   │   ├── 📂 entities
+│   │   │   └── 📄 role.entity.ts  # Entité rôle
+│   │   ├── 📄 roles.module.ts      # Module des rôles
+│   │   ├── 📄 roles.controller.ts  # Contrôleur des rôles
+│   │   └── 📄 roles.service.ts     # Service des rôles
+│   │
+│   ├── 📂 companies              # Gestion des entreprises
+│   │   ├── 📂 dto
+│   │   │   └── 📄 create-company.dto.ts  # DTO pour la création d'une entreprise
+│   │   ├── 📂 entities
+│   │   │   └── 📄 company.entity.ts  # Entité entreprise
+│   │   ├── 📄 companies.module.ts      # Module des entreprises
+│   │   ├── 📄 companies.controller.ts  # Contrôleur des entreprises
+│   │   └── 📄 companies.service.ts     # Service des entreprises
+│   │
+│   ├── 📂 products               # Gestion des produits
+│   │   ├── 📂 dto
+│   │   │   └── 📄 create-product.dto.ts  # DTO pour la création d'un produit
+│   │   ├── 📂 entities
+│   │   │   └── 📄 product.entity.ts  # Entité produit
+│   │   ├── 📄 products.module.ts      # Module des produits
+│   │   ├── 📄 products.controller.ts  # Contrôleur des produits
+│   │   └── 📄 products.service.ts     # Service des produits
+├── 📂 test                      # Fichiers de tests unitaires et e2e
+│   ├── 📄 app.e2e-spec.ts         # Tests end-to-end
+│   ├── 📄 jest.config.ts          # Configuration Jest
+│   ├── 📂 mocks                   # Mocks pour les tests
+│   └── 📂 fixtures                # Données de test
+│
+├── 📄 package.json               # Dépendances et scripts du projet
+├── 📄 tsconfig.json               # Configuration TypeScript
+├── 📄 .eslintrc.js                # Configuration ESLint
+├── 📄 .prettierrc                 # Configuration Prettier
+└── 📄 README.md                   # Documentation du projet
+
 ```
 
-## Compile and run the project
+## 🛠 Technologies utilisées
+
+- **Frontend** : Next.js
+- **Backend** : NestJS (API et logique métier)
+- **Base de données** : MySQL
+- **Containerisation** : Docker & Docker compose
+- **CI/CD** : GitHub Actions
+
+## ⚙️ Installation et configuration
+
+### 📌 Prérequis
+
+Avant de commencer, assurez-vous que vous avez les outils suivants installés :
+
+- **Node.js** 20.18.0
+- **Docker**
+- **Docker compose**
+- **Make**
+
+### 🚀 Étapes d'installation
+Pour lancer le projet ça se passe sur le projet devtools
+#### 1️⃣ Cloner le projet DevTools et initialiser l'environnement
+
+Clonez le dépôt DevTools et passez dans le répertoire du projet :
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone https://github.com/your-repo/devtools.git
+cd devtools
+make init
 ```
+Cette commande installe automatiquement le frontend et le backend.
 
-## Run tests
-
+#### 2️⃣ Mettre à jour le projet
+Mettez à jour le projet en vous assurant que vous êtes sur la branche develop et en installant les dépendances :
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+make update
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### 3️⃣ Lancer le projet
+Lancez l'application avec Docker Compose :
 ```bash
-$ npm install -g mau
-$ mau deploy
+make start
 ```
+Cette commande démarre l'ensemble de l'application.
+### 4️⃣ Arrêter le projet
+Pour arrêter les services Docker associés à l'application :
+```bash
+make stop
+```
+### 5️⃣ Exporter la base de données
+Si vous souhaitez exporter la base de données MySQL :
+```bash
+make export-db
+```
+### 6️⃣ Importer une base de données
+Pour importer une base de données MySQL :
+```bash
+make import-db
+```
+## 🚢 Déploiement
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Le projet est configuré pour être déployé via Docker et GitHub Actions.
+À chaque fois qu'un tag versionné (vX.X.X) est poussé, une image Docker est construite, envoyée sur Docker Hub, et le déploiement est lancé sur Coolify.
