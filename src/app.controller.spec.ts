@@ -1,26 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { HealthController } from './health.controller';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 describe('AppController', () => {
   let appController: AppController;
+  let healthController: HealthController;
   let appService: AppService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
+      controllers: [AppController, HealthController],
       providers: [AppService],
     }).compile();
 
     appController = module.get<AppController>(AppController);
+    healthController = module.get<HealthController>(HealthController);
     appService = module.get<AppService>(AppService);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      jest.spyOn(appService, 'getHello').mockImplementation(() => 'Hello World!');
-      expect(appController.getHello()).toBe('Hello World!');
+  describe('health', () => {
+    it('should return "Service is healthy"', () => {
+      expect(healthController.checkHealth()).toBe('Service is healthy');
     });
   });
 
