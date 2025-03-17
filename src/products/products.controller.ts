@@ -6,65 +6,74 @@ import {
   Delete,
   Param,
   Body,
+  UseGuards,
+  Req,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ProductService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Product } from './entities/product.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 
 @ApiTags('Products')
+@ApiBearerAuth()
 @Controller('products')
-export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class ProductsController {
+  constructor(private readonly productsService: ProductService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all products' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of products',
-    type: [Product],
+  @ApiOperation({
+    summary: 'Récupérer tous les produits accessibles à l’utilisateur connecté',
   })
-  findAll() {
-    return this.productService.findAll();
+  @ApiResponse({ status: 200, description: 'Liste des produits récupérée' })
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.USER)
+  async findAll(@Req() req) {
+    return this.productsService.findAllByUser(req.user);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get one product by ID' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.productService.findOne(id);
+  @ApiOperation({ summary: 'Récupérer un produit par ID' })
+  @ApiResponse({ status: 200, description: 'Produit trouvé' })
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.USER)
+  async findOne(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    return this.productsService.findOneByUser(id, req.user);
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create a new product' })
-  @ApiBody({ type: CreateProductDto })
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  @ApiOperation({ summary: 'Créer un produit' })
+  @ApiResponse({ status: 201, description: 'Produit créé avec succès' })
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.USER)
+  async create(@Body() createProductDto: CreateProductDto, @Req() req) {
+    return this.productsService.create(createProductDto, req.user);
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a product' })
-  @ApiBody({ type: UpdateProductDto })
-  update(
+  @ApiOperation({ summary: 'Modifier un produit existant par ID' })
+  @ApiResponse({ status: 200, description: 'Produit modifié avec succès' })
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.USER)
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateProductDto: UpdateProductDto,
+    @Req() req,
   ) {
-    return this.productService.update(id, updateProductDto);
-  }
-
-  @Patch(':id/stock')
-  @ApiOperation({ summary: 'Update product stock and adjust status' })
-  updateStock(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: { quantitySold: number },
-  ) {
-    return this.productService.updateStock(id, body.quantitySold);
+    return this.productsService.update(id, updateProductDto, req.user);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a product' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.productService.remove(id);
+  @ApiOperation({ summary: 'Supprimer un produit existant' })
+  @ApiResponse({ status: 200, description: 'Produit supprimé avec succès' })
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.USER)
+  async remove(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    return this.productsService.remove(id, req.user);
   }
 }

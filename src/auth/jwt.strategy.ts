@@ -1,33 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  /**
-   * Constructor for the JWT strategy.
-   *
-   * This strategy expects a JWT to be sent in the `Authorization` header
-   * with the format `Bearer <jwt>`. The `ignoreExpiration` option is set to
-   * `false` so that expired JWTs are not accepted. The `secretOrKey` is
-   * loaded from environment variables via the ConfigService.
-   */
-  constructor(private readonly configService: ConfigService) {
+  constructor(private usersService: UsersService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET', 'defaultSecretForDev'),
+      secretOrKey: process.env.JWT_SECRET || 'secretKey',
     });
   }
 
-  /**
-   * Validate a user with a JWT payload.
-   *
-   * @param payload - The payload from the JWT.
-   * @returns The user object if valid
-   */
   async validate(payload: any) {
-    return { userId: payload.sub, username: payload.username };
+    const user = await this.usersService.findOne(payload.sub);
+
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur introuvable.');
+    }
+
+    return user;
   }
 }

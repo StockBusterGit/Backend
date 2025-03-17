@@ -1,12 +1,18 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
 
 export class CreateTagDto {
+  @ApiProperty({ example: 'Fragile', description: 'Nom du tag' })
   @IsString()
   @IsNotEmpty()
   label: string;
 
-  // Optionnel: IDs de produits à associer directement à la création
-  @IsArray()
+  @ApiProperty({
+    example: [1, 2],
+    description: 'Liste des identifiants produits associés (optionnel)',
+    required: false,
+  })
   @IsOptional()
+  @IsArray()
   productIds?: number[];
 }

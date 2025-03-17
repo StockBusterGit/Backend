@@ -9,33 +9,24 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Login a user and return a JWT token' })
+  @ApiOperation({ summary: 'Authentifier un utilisateur et obtenir un JWT' })
   @ApiBody({
-    description: 'User login credentials',
     schema: {
-      type: 'object',
       properties: {
-        email: { type: 'string', example: 'test@example.com' },
-        password: { type: 'string', example: 'password123' },
+        email: { example: 'john@example.com' },
+        password: { example: 'password123' },
       },
     },
   })
   @ApiResponse({
     status: 200,
-    description: 'Login successful',
+    description: 'Connexion réussie, retourne le token JWT',
     schema: {
-      type: 'object',
       properties: {
-        access_token: { type: 'string', example: 'JWT_TOKEN_HERE' },
+        access_token: { example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' },
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Invalid email or password' })
-  /**
-   * Login a user and return a JWT token
-   * @param body User login credentials
-   * @returns A JWT token representing the user's access token
-   */
   async login(@Body() body: { email: string; password: string }) {
     console.log('Received login request:', body);
     const user = await this.authService.validateUser(body.email, body.password);
