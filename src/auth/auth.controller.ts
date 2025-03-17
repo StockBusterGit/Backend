@@ -37,6 +37,7 @@ export class AuthController {
    * @returns A JWT token representing the user's access token
    */
   async login(@Body() body: { email: string; password: string }) {
+    console.log('Received login request:', body);
     const user = await this.authService.validateUser(body.email, body.password);
     return this.authService.login(user);
   }
