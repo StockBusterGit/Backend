@@ -4,10 +4,12 @@ import {
   Column,
   ManyToOne,
   ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
-import { Status } from '../../status/entities/status.entity';
 import { Tag } from '../../tags/entities/tag.entity';
+import { Status } from '../../status/entities/status.entity';
+import { ProductStatus } from '../enums/product-status.enum';
 
 @Entity('products')
 export class Product {
@@ -23,19 +25,32 @@ export class Product {
   @Column()
   stock: number;
 
-  @Column('float')
+  @Column({ type: 'float' })
   price_unit: number;
 
   @Column()
   stock_min: number;
 
-  @ManyToOne(() => Status, (status) => status.products)
-  status: Status;
+  @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.ACTIVE })
+  status: ProductStatus;
 
-  @ManyToOne(() => Company, (company) => company.products)
+  // ✅ Relation avec `Company`
+  @ManyToOne(() => Company, (company) => company.products, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
   company: Company;
 
-  // Relation ManyToMany inverse
-  @ManyToMany(() => Tag, (tag) => tag.products)
+  // ✅ Relation avec `Status`
+  @ManyToOne(() => Status, (status) => status.products, { nullable: true })
+  statusEntity: Status;
+
+  // ✅ Relation Many-to-Many avec `Tags`
+  @ManyToMany(() => Tag, (tag) => tag.products, { cascade: true })
+  @JoinTable({
+    name: 'product_tags',
+    joinColumn: { name: 'product_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' },
+  })
   tags: Tag[];
 }

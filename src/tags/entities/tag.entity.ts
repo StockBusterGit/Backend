@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
 
 @Entity('tags')
@@ -15,13 +9,7 @@ export class Tag {
   @Column()
   label: string;
 
-  // Relation ManyToMany avec Product
+  // ✅ Relation ManyToMany avec `Products`
   @ManyToMany(() => Product, (product) => product.tags)
-  @JoinTable({
-    // Table pivot
-    name: 'product_tag',
-    joinColumn: { name: 'id_tag', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'id_product', referencedColumnName: 'id' },
-  })
   products: Product[];
 }
