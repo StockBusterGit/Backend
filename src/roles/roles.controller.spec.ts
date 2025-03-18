@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RolesController } from './roles.controller';
 import { RolesService } from './roles.service';
-import { Role } from './entities/role.entity';
 
 describe('RolesController', () => {
   let controller: RolesController;
@@ -39,7 +38,7 @@ describe('RolesController', () => {
 
   describe('create', () => {
     it('should create and return a new role', async () => {
-      const roleData = { name: 'User' }; // Assure que 'name' est défini
+      const roleData = { name: 'User' }; 
       const result = await controller.create(roleData);
       expect(result).toEqual({ id: 2, name: 'User' });
       expect(service.create).toHaveBeenCalledWith(roleData);

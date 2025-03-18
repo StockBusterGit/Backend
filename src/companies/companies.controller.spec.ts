@@ -12,7 +12,7 @@ describe('CompaniesController', () => {
   const mockCompany = {
     id: 1,
     name: 'Test Company',
-    owner: { id: 1, username: 'testuser', email: 'test@example.com' }
+    owner: { id: 1, username: 'testuser', email: 'test@example.com' },
   };
 
   beforeEach(async () => {
@@ -27,7 +27,7 @@ describe('CompaniesController', () => {
             findOne: jest.fn().mockResolvedValue(mockCompany),
             update: jest.fn().mockResolvedValue({
               ...mockCompany,
-              name: 'Updated Company'
+              name: 'Updated Company',
             }),
             remove: jest.fn().mockResolvedValue(undefined),
           },
@@ -49,9 +49,9 @@ describe('CompaniesController', () => {
         name: 'Test Company',
         userId: 1,
       };
-      
+
       const result = await controller.create(createCompanyDto);
-      
+
       expect(result).toEqual(mockCompany);
       expect(service.create).toHaveBeenCalledWith(createCompanyDto);
     });
@@ -60,7 +60,7 @@ describe('CompaniesController', () => {
   describe('findAll', () => {
     it('should return an array of companies', async () => {
       const result = await controller.findAll();
-      
+
       expect(result).toEqual([mockCompany]);
       expect(service.findAll).toHaveBeenCalled();
     });
@@ -69,16 +69,16 @@ describe('CompaniesController', () => {
   describe('findOne', () => {
     it('should return a single company', async () => {
       const result = await controller.findOne(1);
-      
+
       expect(result).toEqual(mockCompany);
       expect(service.findOne).toHaveBeenCalledWith(1);
     });
 
     it('should throw NotFoundException if company not found', async () => {
-      jest.spyOn(service, 'findOne').mockRejectedValueOnce(
-        new NotFoundException('Company #999 not found')
-      );
-      
+      jest
+        .spyOn(service, 'findOne')
+        .mockRejectedValueOnce(new NotFoundException('Company #999 not found'));
+
       await expect(controller.findOne(999)).rejects.toThrow(NotFoundException);
     });
   });
@@ -88,9 +88,9 @@ describe('CompaniesController', () => {
       const updateCompanyDto: UpdateCompanyDto = {
         name: 'Updated Company',
       };
-      
+
       const result = await controller.update(1, updateCompanyDto);
-      
+
       expect(result).toEqual({
         ...mockCompany,
         name: 'Updated Company',
@@ -102,28 +102,30 @@ describe('CompaniesController', () => {
       const updateCompanyDto: UpdateCompanyDto = {
         name: 'Updated Company',
       };
-      
-      jest.spyOn(service, 'update').mockRejectedValueOnce(
-        new NotFoundException('Company #999 not found')
+
+      jest
+        .spyOn(service, 'update')
+        .mockRejectedValueOnce(new NotFoundException('Company #999 not found'));
+
+      await expect(controller.update(999, updateCompanyDto)).rejects.toThrow(
+        NotFoundException,
       );
-      
-      await expect(controller.update(999, updateCompanyDto)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('remove', () => {
     it('should remove a company', async () => {
       const result = await controller.remove(1);
-      
+
       expect(result).toBeUndefined();
       expect(service.remove).toHaveBeenCalledWith(1);
     });
 
     it('should throw NotFoundException if company to remove not found', async () => {
-      jest.spyOn(service, 'remove').mockRejectedValueOnce(
-        new NotFoundException('Company #999 not found')
-      );
-      
+      jest
+        .spyOn(service, 'remove')
+        .mockRejectedValueOnce(new NotFoundException('Company #999 not found'));
+
       await expect(controller.remove(999)).rejects.toThrow(NotFoundException);
     });
   });
