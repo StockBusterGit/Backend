@@ -8,7 +8,7 @@ export class RolesService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
-  ) { }
+  ) {}
 
   /**
    * Lifecycle hook that is called when the application has fully started.
@@ -25,7 +25,7 @@ export class RolesService implements OnApplicationBootstrap {
    * name already exists, it is skipped.
    */
   private async seedRoles() {
-    const defaultRoles = ['admin', 'user'];
+    const defaultRoles = ['SUPER_ADMIN', 'ADMIN', 'USER'];
 
     for (const roleName of defaultRoles) {
       const existingRole = await this.roleRepository.findOne({

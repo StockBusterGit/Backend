@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -39,8 +40,12 @@ export class AuthService {
    * @param user L'utilisateur pour lequel le jeton est créé
    * @returns Un objet contenant le jeton d'accès JWT
    */
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.id };
+  async login(user: User) {
+    const payload = {
+      username: user.username,
+      sub: user.id,
+      role: user.role.name,
+    };
     return {
       access_token: this.jwtService.sign(payload),
     };

@@ -1,35 +1,23 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private userRepository: Repository<User>,
     @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
+    private roleRepository: Repository<Role>,
   ) {}
-
-  /**
-   * Retrieves all users with their associated roles.
-   *
-   * @returns {Promise<User[]>} - A promise that resolves to an array of all users, including their roles.
-   */
-
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({ relations: ['role'] });
-  }
-
-  /**
-   * Finds a user by their email address.
-   *
-   * @param {string} email - The email address to search for.
-   * @returns {Promise<User | undefined>} - A promise that resolves to the user with the specified email, or undefined if no matching user is found.
-   */
 
   async findByEmail(email: string): Promise<User | undefined> {
     return this.userRepository.findOne({
@@ -38,28 +26,69 @@ export class UsersService {
     });
   }
 
-  /**
-   * Creates a new user with the given data.
-   *
-   * @param {CreateUserDto} createUserDto - Data Transfer Object containing the user's details including username, password, email, and roleId.
-   * @returns {Promise<User>} - A promise that resolves to the created User entity.
-   * @throws {NotFoundException} - If the specified roleId does not correspond to an existing role.
-   */
-
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const { roleId, ...userData } = createUserDto;
-
-    const roleEntity = await this.roleRepository.findOne({
-      where: { id: roleId },
+  async findOne(id: number, user?: User): Promise<User> {
+    const foundUser = await this.userRepository.findOne({
+      where: { id },
+      relations: ['role'],
     });
-    if (!roleEntity) {
-      throw new NotFoundException(`Role with ID ${roleId} not found`);
+    if (!foundUser) throw new NotFoundException('Utilisateur non trouvé.');
+
+    if (user) {
+      if (user.role.name === 'USER' && user.id !== foundUser.id) {
+        throw new ForbiddenException('Accès refusé à cet utilisateur.');
+      }
+
+      if (user.role.name === 'ADMIN' && foundUser.role.name === 'SUPER_ADMIN') {
+        throw new ForbiddenException(
+          'Vous ne pouvez pas accéder à cet utilisateur.',
+        );
+      }
     }
 
-    const user = this.userRepository.create({
-      ...userData,
-      role: roleEntity,
+    return foundUser;
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find({ relations: ['role'] });
+  }
+
+  async create(dto: CreateUserDto): Promise<User> {
+    const role = await this.roleRepository.findOne({
+      where: { id: dto.roleId },
     });
+    if (!role) throw new NotFoundException('Rôle non trouvé.');
+    const user = this.userRepository.create({ ...dto, role });
     return this.userRepository.save(user);
+  }
+
+  async update(id: number, dto: UpdateUserDto, user: User): Promise<User> {
+    const existingUser = await this.userRepository.findOne({
+      where: { id },
+      relations: ['role'],
+    });
+    if (!existingUser) throw new NotFoundException('Utilisateur non trouvé.');
+
+    if (user.role.name === 'USER' && user.id !== existingUser.id) {
+      throw new ForbiddenException(
+        'Vous ne pouvez modifier que votre propre profil.',
+      );
+    }
+
+    if (dto.roleId) {
+      const role = await this.roleRepository.findOne({
+        where: { id: dto.roleId },
+      });
+      if (!role) throw new NotFoundException('Rôle non trouvé.');
+      existingUser.role = role;
+    }
+
+    Object.assign(existingUser, dto);
+    return this.userRepository.save(existingUser);
+  }
+
+  async remove(id: number): Promise<void> {
+    const existingUser = await this.userRepository.findOne({ where: { id } });
+    if (!existingUser) throw new NotFoundException('Utilisateur non trouvé.');
+    await this.userRepository.remove(existingUser);
   }
 }

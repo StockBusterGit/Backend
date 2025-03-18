@@ -1,145 +1,74 @@
+// tags.service.ts
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  OnApplicationBootstrap,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Tag } from './entities/tag.entity';
-import { Product } from '../products/entities/product.entity';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
+import { User } from '../users/entities/user.entity';
+import { Role } from '../auth/enums/role.enum';
 
 @Injectable()
-export class TagsService implements OnApplicationBootstrap {
+export class TagsService {
   constructor(
-    @InjectRepository(Tag)
-    private readonly tagRepository: Repository<Tag>,
-
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
+    @InjectRepository(Tag) private readonly tagRepository: Repository<Tag>,
   ) {}
 
-  /**
-   * 🔄 Exécuté au démarrage pour insérer les tags prédéfinis s'ils n'existent pas.
-   */
-  async onApplicationBootstrap() {
-    await this.seedTags();
-  }
-
-  /**
-   * 📌 Insère les tags prédéfinis s'ils ne sont pas déjà enregistrés.
-   */
-  private async seedTags() {
-    const predefinedTags = [
-      'Périssable',
-      'Non périssable',
-      'Fragile',
-      'Lourd',
-      'Volumineux',
-      'Coûteux',
-      'Bon marché',
-      'Édition limitée',
-      'Éco-responsable',
-      'En promotion',
-      'Saisonnier',
-      'Nouvelle arrivée',
-      'Meilleure vente',
-      'Stock bas',
-      'Arrêté',
-      'Endommagé',
-      'Retourné',
-      'Commande en cours',
-      'Importé',
-      'Fabriqué en France',
-      'Vente en gros',
-      'Vente au détail',
-    ];
-
-    for (const label of predefinedTags) {
-      const existingTag = await this.tagRepository.findOne({
-        where: { label },
-      });
-      if (!existingTag) {
-        const tag = this.tagRepository.create({ label });
-        await this.tagRepository.save(tag);
-        console.log(`✅ Tag "${label}" ajouté.`);
-      }
+  async findAllByUser(user: User): Promise<Tag[]> {
+    if (user.role.name === Role.SUPER_ADMIN) {
+      return this.tagRepository.find();
     }
+    return this.tagRepository
+      .createQueryBuilder('tag')
+      .innerJoin('tag.products', 'product')
+      .innerJoin('product.company', 'company')
+      .where('company.ownerId = :userId', { userId: user.id })
+      .getMany();
   }
 
-  /**
-   * 🔍 Récupère tous les tags avec leurs produits associés.
-   */
-  async findAll(): Promise<Tag[]> {
-    return this.tagRepository.find({ relations: ['products'] });
-  }
+  async findOneByUser(id: number, user: User): Promise<Tag> {
+    const tag = await this.tagRepository.findOne({ where: { id } });
+    if (!tag) throw new NotFoundException('Tag non trouvé');
 
-  /**
-   * 🔍 Récupère un tag par ID.
-   */
-  async findOne(id: number): Promise<Tag> {
-    const tag = await this.tagRepository.findOne({
-      where: { id },
-      relations: ['products'],
-    });
-    if (!tag) {
-      throw new NotFoundException(`Tag #${id} non trouvé.`);
-    }
+    if (user.role.name === Role.SUPER_ADMIN) return tag;
+
+    const linkedToUser = await this.tagRepository
+      .createQueryBuilder('tag')
+      .innerJoin('tag.products', 'product')
+      .innerJoin('product.company', 'company')
+      .where('tag.id = :id AND company.ownerId = :userId', {
+        id,
+        userId: user.id,
+      })
+      .getOne();
+
+    if (!linkedToUser) throw new ForbiddenException('Accès interdit au tag.');
     return tag;
   }
 
-  /**
-   * ➕ Crée un nouveau tag.
-   */
-  async create(dto: CreateTagDto): Promise<Tag> {
-    // Vérifie si le tag existe déjà
-    const existingTag = await this.tagRepository.findOne({
-      where: { label: dto.label },
-    });
-    if (existingTag) {
-      throw new NotFoundException(`Le tag "${dto.label}" existe déjà.`);
-    }
-
-    let products: Product[] = [];
-    if (dto.productIds && dto.productIds.length > 0) {
-      products = await this.productRepository.find({
-        where: { id: In(dto.productIds) },
-      });
-    }
-
-    const tag = this.tagRepository.create({
-      label: dto.label,
-      products,
-    });
+  async create(dto: CreateTagDto, user: User): Promise<Tag> {
+    if (user.role.name !== Role.SUPER_ADMIN)
+      throw new ForbiddenException('Seul SUPER_ADMIN peut créer des tags.');
+    const tag = this.tagRepository.create(dto);
     return this.tagRepository.save(tag);
   }
 
-  /**
-   * 📝 Met à jour un tag existant.
-   */
-  async update(id: number, dto: UpdateTagDto): Promise<Tag> {
-    const tag = await this.findOne(id);
-
-    if (dto.label !== undefined) {
-      tag.label = dto.label;
-    }
-
-    if (dto.productIds) {
-      const products = await this.productRepository.find({
-        where: { id: In(dto.productIds) },
-      });
-      tag.products = products;
-    }
-
+  async update(id: number, dto: UpdateTagDto, user: User): Promise<Tag> {
+    if (user.role.name !== Role.SUPER_ADMIN)
+      throw new ForbiddenException('Seul SUPER_ADMIN peut modifier des tags.');
+    const tag = await this.findOneByUser(id, user);
+    Object.assign(tag, dto);
     return this.tagRepository.save(tag);
   }
 
-  /**
-   * ❌ Supprime un tag par ID.
-   */
-  async remove(id: number): Promise<void> {
-    const tag = await this.findOne(id);
+  async remove(id: number, user: User): Promise<void> {
+    if (user.role.name !== Role.SUPER_ADMIN)
+      throw new ForbiddenException('Seul SUPER_ADMIN peut supprimer des tags.');
+    const tag = await this.findOneByUser(id, user);
     await this.tagRepository.remove(tag);
   }
 }

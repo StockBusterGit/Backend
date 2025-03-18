@@ -1,104 +1,79 @@
+// status.service.ts
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  OnApplicationBootstrap,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Status } from './entities/status.entity';
 import { CreateStatusDto } from './dto/create-status.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
-import { ProductStatus } from '../products/enums/product-status.enum';
+import { User } from '../users/entities/user.entity';
+import { Role } from '../auth/enums/role.enum';
 
 @Injectable()
-export class StatusService implements OnApplicationBootstrap {
+export class StatusService {
   constructor(
-    @InjectRepository(Status)
-    private readonly statusRepo: Repository<Status>,
+    @InjectRepository(Status) private readonly statusRepo: Repository<Status>,
   ) {}
 
-  /**
-   * 🔄 Exécuté au démarrage pour insérer les statuts prédéfinis s'ils n'existent pas.
-   */
-  async onApplicationBootstrap() {
-    await this.seedStatuses();
-  }
-
-  /**
-   * Insère les statuts prédéfinis s'ils ne sont pas encore enregistrés.
-   */
-  private async seedStatuses() {
-    const predefinedStatuses = [
-      { key: ProductStatus.ACTIVE, label: 'Actif' },
-      { key: ProductStatus.INACTIVE, label: 'Inactif' },
-      { key: ProductStatus.OUT_OF_STOCK, label: 'Rupture de stock' },
-      { key: ProductStatus.ON_ORDER, label: 'En commande' },
-      { key: ProductStatus.LOW_QUANTITY, label: 'Bientôt en rupture' },
-      { key: ProductStatus.DISCONTINUED, label: 'Arrêté' },
-      { key: ProductStatus.PROMOTION, label: 'En promotion' },
-    ];
-
-    for (const { label } of predefinedStatuses) {
-      const existingStatus = await this.statusRepo.findOne({
-        where: { label },
-      });
-      if (!existingStatus) {
-        const status = this.statusRepo.create({ label });
-        await this.statusRepo.save(status);
-        console.log(`✅ Statut "${label}" ajouté.`);
-      }
+  async findAllByUser(user: User): Promise<Status[]> {
+    if (user.role.name === Role.SUPER_ADMIN) {
+      return this.statusRepo.find();
     }
+    return this.statusRepo
+      .createQueryBuilder('status')
+      .innerJoin('status.products', 'product')
+      .innerJoin('product.company', 'company')
+      .where('company.ownerId = :userId', { userId: user.id })
+      .getMany();
   }
 
-  /**
-   * Récupère tous les statuts.
-   */
-  async findAll(): Promise<Status[]> {
-    return this.statusRepo.find();
-  }
-
-  /**
-   * Récupère un statut par ID.
-   */
-  async findOne(id: number): Promise<Status> {
+  async findOneByUser(id: number, user: User): Promise<Status> {
     const status = await this.statusRepo.findOne({ where: { id } });
-    if (!status) {
-      throw new NotFoundException(`Statut #${id} non trouvé`);
-    }
+    if (!status) throw new NotFoundException('Statut non trouvé');
+
+    if (user.role.name === Role.SUPER_ADMIN) return status;
+
+    const linkedToUser = await this.statusRepo
+      .createQueryBuilder('status')
+      .innerJoin('status.products', 'product')
+      .innerJoin('product.company', 'company')
+      .where('status.id = :id AND company.ownerId = :userId', {
+        id,
+        userId: user.id,
+      })
+      .getOne();
+
+    if (!linkedToUser)
+      throw new ForbiddenException('Accès interdit au statut.');
     return status;
   }
 
-  /**
-   * Crée un nouveau statut.
-   */
-  async create(dto: CreateStatusDto): Promise<Status> {
-    const existingStatus = await this.statusRepo.findOne({
-      where: { label: dto.label },
-    });
-    if (existingStatus) {
-      throw new NotFoundException(`Le statut "${dto.label}" existe déjà.`);
-    }
-
-    const status = this.statusRepo.create({ label: dto.label });
+  async create(dto: CreateStatusDto, user: User): Promise<Status> {
+    if (user.role.name !== Role.SUPER_ADMIN)
+      throw new ForbiddenException('Seul SUPER_ADMIN peut créer des statuts.');
+    const status = this.statusRepo.create(dto);
     return this.statusRepo.save(status);
   }
 
-  /**
-   * Met à jour un statut existant.
-   */
-  async update(id: number, dto: UpdateStatusDto): Promise<Status> {
-    const status = await this.findOne(id);
-    if (dto.label !== undefined) {
-      status.label = dto.label;
-    }
+  async update(id: number, dto: UpdateStatusDto, user: User): Promise<Status> {
+    if (user.role.name !== Role.SUPER_ADMIN)
+      throw new ForbiddenException(
+        'Seul SUPER_ADMIN peut modifier des statuts.',
+      );
+    const status = await this.findOneByUser(id, user);
+    Object.assign(status, dto);
     return this.statusRepo.save(status);
   }
 
-  /**
-   * Supprime un statut par ID.
-   */
-  async remove(id: number): Promise<void> {
-    const status = await this.findOne(id);
+  async remove(id: number, user: User): Promise<void> {
+    if (user.role.name !== Role.SUPER_ADMIN)
+      throw new ForbiddenException(
+        'Seul SUPER_ADMIN peut supprimer des statuts.',
+      );
+    const status = await this.findOneByUser(id, user);
     await this.statusRepo.remove(status);
   }
 }
